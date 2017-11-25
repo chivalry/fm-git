@@ -2,7 +2,7 @@
 
 __version__ = ['1.0.0', 'Charles Ross', '17-11-17']
 
-import sys, tempfile, shutil, subprocess, pwd, getpass, logging, os, time
+import sys, tempfile, shutil, subprocess, pwd, getpass, logging, os, time, argparse
 
 logging.basicConfig(format='%(levelname)s %(asctime)s: %(message)s',
                     level=logging.INFO,
@@ -62,6 +62,7 @@ def move_files(src, dest):
     shutil.rmtree(src)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
     if len(sys.argv) != 7:
         sys.exit('Usage: fm-git filename repository path comment username password')
     commit_to_repository(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
