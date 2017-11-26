@@ -2,7 +2,7 @@
 
 __version__ = ['1.0.0', 'Charles Ross', '17-11-17']
 
-import sys, tempfile, shutil, subprocess, pwd, getpass, logging, os, time, argparse
+import shutil, subprocess, logging, os, time, argparse, json
 
 logging.basicConfig(format='%(levelname)s %(asctime)s: %(message)s',
                     level=logging.INFO,
@@ -29,7 +29,7 @@ def commit_to_repository(filename, repository, path, comment, username, password
     shutil.move(src_path, trg_path)
     shutil.rmtree(db_path)
 
-    cmd = 'git add * ; git commit -m "{}" ; git push'.format(comment)
+    cmd = 'cd {} ; git add * ; git commit -m "{}" ; git push'.format(repository, comment)
     subprocess.call(cmd, shell=True)
 
 def startup_drive_name():
@@ -48,7 +48,7 @@ def create_ddr(repository):
     ddr_name = subprocess.check_output(cmd, shell=True).splitlines()[0]
 
     # Move to repository's DDR folder.
-    src_ddr = os.path.join(os.path.expanduser("~/Desktop"), ddr_name)
+    src_ddr = os.path.join(os.path.expanduser('~/Desktop'), ddr_name)
     time.sleep(0.25)
     trg_ddr = os.path.join(repository, 'DDR')
     move_files(src_ddr, trg_ddr)
@@ -62,7 +62,14 @@ def move_files(src, dest):
     shutil.rmtree(src)
 
 if __name__ == '__main__':
+    config = json.loads(open(os.path.expanduser('~/.fm-git')).read())
+
     parser = argparse.ArgumentParser()
-    if len(sys.argv) != 7:
-        sys.exit('Usage: fm-git filename repository path comment username password')
-    commit_to_repository(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
+    parser.add_argument('-f', '--filename', required=True, help='the name of the served file to commit')
+    parser.add_argument('-r', '--repository', required=True, help='the path to the local repository directory')
+    parser.add_argument('-t', '--path', required=True,
+                        help="the relative path within the `Databases` folder to the file's parent")
+    parser.add_argument('-c', '--comment', required=True, help='the commit comment')
+    args = parser.parse_args()
+
+    commit_to_repository(args.filename, args.repository, args.path, args.comment, config['username'], config['password'])
