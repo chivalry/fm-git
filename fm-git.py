@@ -8,7 +8,7 @@ logging.basicConfig(format='%(levelname)s %(asctime)s: %(message)s',
                     level=logging.INFO,
                     datefmt='%m/%d/%Y %I:%M:%S %p')
 
-def commit_to_repository(filename, repository, path, comment, username, password):
+def commit_to_repository(filename, repository, path, comment):
     '''Use parameters to commit the file to a git repository.
     
     Create a backup of the served file, move the backup to the repository folder,
@@ -18,9 +18,11 @@ def commit_to_repository(filename, repository, path, comment, username, password
     startup_vol = startup_drive_name()
 
     create_ddr(repository)
+
+    config = json.loads(open(os.path.expanduser('~/.fm-git')).read())
     
     cmd = 'fmsadmin backup {} --dest filemac:/{}{} --keep 0 --username {} --password {}'
-    cmd = cmd.format(filename, startup_vol, repository, username, password)
+    cmd = cmd.format(filename, startup_vol, repository, config['username'], config['password'])
     subprocess.call(cmd, shell=True)
 
     db_path = os.path.join(repository, 'Databases')
@@ -62,8 +64,6 @@ def move_files(src, dest):
     shutil.rmtree(src)
 
 if __name__ == '__main__':
-    config = json.loads(open(os.path.expanduser('~/.fm-git')).read())
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--filename', required=True, help='the name of the served file to commit')
     parser.add_argument('-r', '--repository', required=True, help='the path to the local repository directory')
@@ -72,4 +72,4 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--comment', required=True, help='the commit comment')
     args = parser.parse_args()
 
-    commit_to_repository(args.filename, args.repository, args.path, args.comment, config['username'], config['password'])
+    commit_to_repository(args.filename, args.repository, args.path, args.comment)
